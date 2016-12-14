@@ -1,4 +1,4 @@
-from insightWorker import insightWorker
+from insightWorker import InsightWorker
 
-iw = insightWorker('queue')
+iw = InsightWorker('queue')
 iw.listen()

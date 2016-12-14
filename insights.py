@@ -1,8 +1,8 @@
 
 
-class insights:
+class Insights:
     def __init__(self, data):
         self.data = data
 
-    def process():
+    def process(self):
         return self.data
