@@ -62,6 +62,21 @@ class Insights:
     def checkContiguousDates(self, data):
         pass
 
+    # TODO:
+    def checkLeapDay(self, date1, date2):
+        pass
+
+    # TODO:
+    def compareArbitrary(self, current, last, t='type'):
+        pass
+
+    # TODO:
+    def arbitraryPeriod(self, data, len, offset, t='type'):
+        pass
+
+    # TODO:
+    # rest of individual date range categories
+
     def generateInsights(self, dif, n, t='type'):
         insights = []
         meta = dif['meta']
