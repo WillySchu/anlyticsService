@@ -29,8 +29,8 @@ class Insights:
         a = self.aggregate(days[-1:])
         b = self.aggregate(days[-2:-1])
         c = self.compare(a, b)
-        print c
-
+        d = self.generateInsights(c, 5)
+        print d
         # Harvest some shit
         return self.data
 
@@ -58,9 +58,39 @@ class Insights:
 
         return result
 
+    # TODO:
     def checkContiguousDates(self, data):
-        lastDate = ''
-        oneDay = timedelta(day=1)
+        pass
+
+    def generateInsights(self, dif, n, t='type'):
+        insights = []
+        meta = dif['meta']
+        del dif['meta']
+
+        for met in dif.keys():
+            for dim in dif[met].keys():
+                insight = {}
+                insight['startDate'] = meta['startDate']
+                insight['endDate'] = meta['endDate']
+                insight['metric'] = met
+                insight['dimensions'] = dim
+                insight['type'] = t
+                insight['percentChange'] = dif[met][dim]['score']
+                insight['significance'] = self.scoreSignificance(insight, dif[met][dim], meta['largest'][met])
+                insights.append(insight)
+
+        n = n if n < len(insights) else len(insights)
+        insights = sorted(insights, key=lambda d: d['significance'])
+        return insights[-n:]
+
+    def scoreSignificance(self, insight, dif, largest):
+        mag = dif['magnitude']
+        insight['magnitude'] = mag
+        insight['mag1'] = dif['mag1']
+        insight['mag2'] = dif['mag2']
+        normMag = mag / largest['mag']
+        normPerc = abs(insight['percentChange']) / largest['perc']
+        return normMag + normPerc
 
     def compare(self, first, second):
         dif = {}
@@ -89,6 +119,10 @@ class Insights:
 
                     perc = abs(dif[met][dim]['score'])
                     largest[met]['perc'] = perc if largest[met]['perc'] < perc else largest[met]['perc']
+
+                    dif[met][dim]['magnitude'] = first[met][dim] + second[met][dim]
+                    dif[met][dim]['mag1'] = first[met][dim]
+                    dif[met][dim]['mag2'] = second[met][dim]
 
         meta = {}
         meta['startDate'] = second['meta']['startDate']
