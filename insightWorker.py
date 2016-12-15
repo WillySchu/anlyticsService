@@ -16,19 +16,23 @@ class InsightWorker:
     def listen(self):
         while True:
             o = r.brpop(self.queue, timeout=60)
-            if type(o) != 'NoneType':
+            if o is not None:
                 t = iThread(self.go, o)
                 t.start()
                 self.pub()
 
     def go(self, data):
-        data = json.loads(data[1])
-        ins = Insights(data)
-        self.q.put(ins.process())
+        print('starting')
+        envelope = json.loads(data[1])
+        ins = Insights(envelope['payload'])
+        envelope['payload'] = ins.process()
+        self.q.put(envelope)
 
     def pub(self):
         s = self.q.get()
         p.publish(s['returnKey'], json.dumps(s))
+        print('published')
+        print(s['returnKey'])
 
 class iThread(threading.Thread):
     def __init__(self, callback, data):
