@@ -26,7 +26,9 @@ class Insights:
             pass
             # check contiguous
 
-        self.aggregate(days[0:])
+        a = self.aggregate(days[0:])
+
+        print a
 
         # Harvest some shit
         return self.data
@@ -87,4 +89,18 @@ class Insights:
             if endDate > meta['endDate']:
                 meta['endDate'] = endDate
 
-        print meta
+            for i in range(0,len(day['rows'])):
+                dimName = ''
+                for j in range(0,len(day['rows'][0])):
+                    if day['columnHeaders'][j]['columnType'] == 'DIMENSION':
+                        if len(dimName) > 0:
+                            dimName += ','
+                        dimName += day['rows'][i][j]
+                    else:
+                        met = day['columnHeaders'][j]['name']
+                        if dimName in agg[met]:
+                            agg[met][dimName] += float(day['rows'][i][j])
+                        else:
+                            agg[met][dimName] = float(day['rows'][i][j])
+
+            return agg
