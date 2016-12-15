@@ -26,9 +26,10 @@ class Insights:
             pass
             # check contiguous
 
-        a = self.aggregate(days[0:])
-
-        print a
+        a = self.aggregate(days[-1:])
+        b = self.aggregate(days[-2:-1])
+        c = self.compare(a, b)
+        print c
 
         # Harvest some shit
         return self.data
@@ -61,10 +62,45 @@ class Insights:
         lastDate = ''
         oneDay = timedelta(day=1)
 
+    def compare(self, first, second):
+        dif = {}
+        largest = {}
+        for met in first.keys():
+            if met == 'meta':
+                print first[met]
+                continue
+
+            largest[met] = {}
+            largest[met]['mag'] = 0
+            largest[met]['perc'] = 0
+
+            if met not in dif:
+                dif[met] = {}
+
+            for dim in first[met].keys():
+                if dim in second[met]:
+                    if second[met][dim] == 0:
+                        continue
+                    dif[met][dim] = {}
+                    mag = abs(first[met][dim]) + abs(second[met][dim])
+                    largest[met]['mag'] = mag if largest[met]['mag'] < mag else largest[met]['mag']
+
+                    dif[met][dim]['score'] = (first[met][dim] - second[met][dim]) / second[met][dim]
+
+                    perc = abs(dif[met][dim]['score'])
+                    largest[met]['perc'] = perc if largest[met]['perc'] < perc else largest[met]['perc']
+
+        meta = {}
+        meta['startDate'] = second['meta']['startDate']
+        meta['endDate'] = first['meta']['endDate']
+        meta['largest'] = largest
+        dif['meta'] = meta
+        return dif
+
     def aggregate(self, data):
         agg = {}
         meta = {}
-        agg['meta'] = {}
+        agg['meta'] = meta
         dimensions = data[0]['query']['dimensions']
         metrics = data[0]['query']['metrics']
         for met in metrics:
