@@ -85,7 +85,7 @@ class Insights(object):
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('week')
-        lastEnd = currentEnd.replace(days=-7)
+        lastEnd = currentEnd.replace(weeks=-1)
         lastStart = lastEnd.floor('week')
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last)
@@ -95,7 +95,7 @@ class Insights(object):
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('month')
-        lastEnd = currentEnd.replace(month=currentEnd.month-1)
+        lastEnd = currentEnd.replace(months=-1)
         lastStart = lastEnd.floor('month')
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last)
@@ -105,6 +105,10 @@ class Insights(object):
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = arrow.floor('quarter')
+        lastEnd = currentEnd.replace(quarters=-1)
+        lastStart - lastEnd.floor('quarter')
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last)
 
     def yearToDate(self, data):
         t = 'yearToDate'
