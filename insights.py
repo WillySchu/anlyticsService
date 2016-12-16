@@ -1,5 +1,6 @@
 import re
 import dateutil.parser
+import arrow
 from datetime import date, timedelta
 
 class Insights(object):
@@ -17,22 +18,24 @@ class Insights(object):
         elif len(self.data) == 1:
             pass
             days = self.splitByDate(self.data[0])
-            # check contiguous
+            self.checkContiguousDates(days)
         elif len(self.data) == 2:
             pass
             # compare
             # return
         else:
-            pass
-            # check contiguous
+            days = self.data
+            self.checkContiguousDates(days)
 
-        a = self.aggregate(days[-1:])
-        b = self.aggregate(days[-2:-1])
-        c = self.compare(a, b)
-        d = self.generateInsights(c, 5)
-        print d
+        # a = self.aggregate(days[-2:])
+        # b = self.aggregate(days[-4:-2])
+        # c = self.compare(a, b)
+        # d = self.generateInsights(c, 5)
+        # print d
+        results.append(self.weekToDate(days))
+        results.append(self.monthToDate(days))
         # Harvest some shit
-        return self.data
+        return results
 
     def splitByDate(self, data):
         result = []
@@ -58,24 +61,65 @@ class Insights(object):
 
         return result
 
-    # TODO:
     def checkContiguousDates(self, data):
-        pass
+        numDays = (arrow.get(data[-1]['query']['start-date']) - arrow.get(data[0]['query']['start-date'])).days + 1
+        if numDays != len(data):
+            raise Exception('data set not contiguous')
+
+    def compareArbitrary(self, current, last, t='type', n=5):
+        current = self.aggregate(current)
+        last = self.aggregate(last)
+        dif = self.compare(current, last)
+        return self.generateInsights(dif, n, t)
 
     # TODO:
-    def checkLeapDay(self, date1, date2):
-        pass
-
-    # TODO:
-    def compareArbitrary(self, current, last, t='type'):
-        pass
-
-    # TODO:
-    def arbitraryPeriod(self, data, len, offset, t='type'):
-        pass
+    def arbitraryPeriod(self, data, firstStart, firstEnd, secondStart, secondEnd):
+        fp = [x for x in data if arrow.get(x['query']['start-date']) >= firstStart and arrow.get(x['query']['start-date']) <= firstEnd]
+        sp = [x for x in data if arrow.get(x['query']['start-date']) >= secondStart and arrow.get(x['query']['start-date']) <= secondEnd]
+        return (sp, fp)
 
     # TODO:
     # rest of individual date range categories
+    def weekToDate(self, data):
+        t = 'weekToDate'
+        print t
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = currentEnd.floor('week')
+        lastEnd = currentEnd.replace(days=-7)
+        lastStart = lastEnd.floor('week')
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last)
+
+    def monthToDate(self, data):
+        t = 'monthToDate'
+        print t
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = currentEnd.floor('month')
+        lastEnd = currentEnd.replace(month=currentEnd.month-1)
+        lastStart = lastEnd.floor('month')
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last)
+
+    def qtrToDate(self, data):
+        t = 'qtrToDate'
+        print t
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = arrow.floor('quarter')
+
+    def yearToDate(self, data):
+        t = 'yearToDate'
+        print t
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
+
+    def dayvsYesterday(self, data):
+        t = 'dayvsYesterday'
+        print t
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
+
+    def dayvsLastYear(self, data):
+        t = 'dayvsLastYear'
+        print t
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
 
     def generateInsights(self, dif, n, t='type'):
         insights = []
@@ -112,7 +156,6 @@ class Insights(object):
         largest = {}
         for met in first.keys():
             if met == 'meta':
-                print first[met]
                 continue
 
             largest[met] = {}
@@ -156,8 +199,8 @@ class Insights(object):
             agg[met] = {}
 
         for day in data:
-            startDate = dateutil.parser.parse(day['query']['start-date'])
-            endDate = dateutil.parser.parse(day['query']['end-date'])
+            startDate = arrow.get(day['query']['start-date'])
+            endDate = arrow.get(day['query']['end-date'])
 
             if startDate != endDate:
                 raise Exception('Harvestor received non exploded data')
@@ -188,4 +231,6 @@ class Insights(object):
                         else:
                             agg[met][dimName] = float(day['rows'][i][j])
 
+            meta['endDate'] = meta['endDate'].format('YYYY-MM-DD')
+            meta['startDate'] = meta['startDate'].format('YYYY-MM-DD')
             return agg
