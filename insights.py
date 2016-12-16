@@ -20,9 +20,7 @@ class Insights(object):
             days = self.splitByDate(self.data[0])
             self.checkContiguousDates(days)
         elif len(self.data) == 2:
-            pass
-            # compare
-            # return
+            return [compareArbitrary(self.data[1], self.data[0], 'adHoc')]
         else:
             days = self.data
             self.checkContiguousDates(days)
@@ -78,8 +76,6 @@ class Insights(object):
         sp = [x for x in data if arrow.get(x['query']['start-date']) >= secondStart and arrow.get(x['query']['start-date']) <= secondEnd]
         return (sp, fp)
 
-    # TODO:
-    # rest of individual date range categories
     def weekToDate(self, data):
         t = 'weekToDate'
         print t
@@ -88,7 +84,7 @@ class Insights(object):
         lastEnd = currentEnd.replace(weeks=-1)
         lastStart = lastEnd.floor('week')
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
-        return self.compareArbitrary(current, last)
+        return self.compareArbitrary(current, last, t)
 
     def monthToDate(self, data):
         t = 'monthToDate'
@@ -98,28 +94,35 @@ class Insights(object):
         lastEnd = currentEnd.replace(months=-1)
         lastStart = lastEnd.floor('month')
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
-        return self.compareArbitrary(current, last)
+        return self.compareArbitrary(current, last, t)
 
     def qtrToDate(self, data):
         t = 'qtrToDate'
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
-        currentStart = arrow.floor('quarter')
+        currentStart = currentEnd.floor('quarter')
         lastEnd = currentEnd.replace(quarters=-1)
         lastStart - lastEnd.floor('quarter')
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
-        return self.compareArbitrary(current, last)
+        return self.compareArbitrary(current, last, t)
 
     def yearToDate(self, data):
         t = 'yearToDate'
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = currentEnd.floor('year')
+        lastEnd = currentEnd.replace(years=-1)
+        lastStart = lastEnd.floor('year')
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last, t)
 
+    # TODO:
     def dayvsYesterday(self, data):
         t = 'dayvsYesterday'
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
 
+    # TODO:
     def dayvsLastYear(self, data):
         t = 'dayvsLastYear'
         print t
