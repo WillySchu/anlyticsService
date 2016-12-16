@@ -2,7 +2,7 @@ import re
 import dateutil.parser
 from datetime import date, timedelta
 
-class Insights:
+class Insights(object):
     def __init__(self, data):
         self.data = data
         self.dateRegex = r".+?(?=T)"

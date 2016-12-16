@@ -8,7 +8,7 @@ from insights import Insights
 r = redis.StrictRedis(host='localhost', port=6379, db=0)
 p = redis.StrictRedis(host='localhost', port=6379, db=0)
 
-class InsightWorker:
+class InsightWorker(object):
     def __init__(self, queue):
         self.queue = queue
         self.q = Queue.Queue()
