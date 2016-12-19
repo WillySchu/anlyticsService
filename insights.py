@@ -1,5 +1,4 @@
 import re
-import dateutil.parser
 import arrow
 from datetime import date, timedelta
 
@@ -25,13 +24,10 @@ class Insights(object):
             days = self.data
             self.checkContiguousDates(days)
 
-        # a = self.aggregate(days[-2:])
-        # b = self.aggregate(days[-4:-2])
-        # c = self.compare(a, b)
-        # d = self.generateInsights(c, 5)
-        # print d
-        results.append(self.weekToDate(days))
-        results.append(self.monthToDate(days))
+
+        results.append(self.dayvsYesterday(days))
+        # results.append(self.weekToDate(days))
+        # results.append(self.monthToDate(days))
         # Harvest some shit
         return results
 
@@ -116,11 +112,15 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
-    # TODO:
     def dayvsYesterday(self, data):
         t = 'dayvsYesterday'
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = currentEnd
+        lastEnd = currentEnd.replace(days=-1)
+        lastStart = lastEnd
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last, t)
 
     # TODO:
     def dayvsLastYear(self, data):
