@@ -1,5 +1,6 @@
 import re
 import arrow
+import logging
 from datetime import date, timedelta
 
 class Insights(object):
@@ -8,7 +9,7 @@ class Insights(object):
         self.dateRegex = r".+?(?=T)"
 
     def process(self):
-        print('Harvesting...')
+        logging.info('Harvesting...')
         results = [];
 
         if len(self.data) < 1:
@@ -73,7 +74,7 @@ class Insights(object):
 
     def weekToDate(self, data):
         t = 'weekToDate'
-        print t
+        logging.info(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('week')
         lastEnd = currentEnd.replace(weeks=-1)
@@ -83,7 +84,7 @@ class Insights(object):
 
     def monthToDate(self, data):
         t = 'monthToDate'
-        print t
+        logging.info(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('month')
         lastEnd = currentEnd.replace(months=-1)
@@ -93,7 +94,7 @@ class Insights(object):
 
     def qtrToDate(self, data):
         t = 'qtrToDate'
-        print t
+        logging.info(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('quarter')
         lastEnd = currentEnd.replace(quarters=-1)
@@ -103,7 +104,7 @@ class Insights(object):
 
     def yearToDate(self, data):
         t = 'yearToDate'
-        print t
+        logging.info(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('year')
         lastEnd = currentEnd.replace(years=-1)
@@ -113,7 +114,7 @@ class Insights(object):
 
     def dayvsYesterday(self, data):
         t = 'dayvsYesterday'
-        print t
+        logging.info(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd
         lastEnd = currentEnd.replace(days=-1)
@@ -123,7 +124,7 @@ class Insights(object):
 
     def dayvsLastYear(self, data):
         t = 'dayvsLastYear'
-        print t
+        logging.info(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd
         lastEnd = currentEnd.replace(years=-1)
