@@ -130,7 +130,7 @@ class Insights(object):
         lastEnd = currentEnd.replace(years=-1)
         lastStart = lastEnd
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
-        return self.compareArbitrary(current, last t)
+        return self.compareArbitrary(current, last, t)
 
     def generateInsights(self, dif, n, t='type'):
         insights = []

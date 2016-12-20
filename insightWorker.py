@@ -2,6 +2,7 @@ import redis
 import json
 import threading
 import Queue
+import logging
 
 from insights import Insights
 
@@ -25,7 +26,13 @@ class InsightWorker(object):
         print('starting')
         envelope = json.loads(data[1])
         ins = Insights(envelope['payload'])
-        envelope['payload'] = ins.process()
+        try:
+            envelope['payload'] = ins.process()
+        except Exception as err:
+            logging.error(err)
+            envelope['payload'] = err.args
+            envelope['error'] = err.args
+
         self.q.put(envelope)
 
     def pub(self):
