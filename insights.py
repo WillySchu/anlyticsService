@@ -66,7 +66,6 @@ class Insights(object):
         dif = self.compare(current, last)
         return self.generateInsights(dif, n, t)
 
-    # TODO:
     def arbitraryPeriod(self, data, firstStart, firstEnd, secondStart, secondEnd):
         fp = [x for x in data if arrow.get(x['query']['start-date']) >= firstStart and arrow.get(x['query']['start-date']) <= firstEnd]
         sp = [x for x in data if arrow.get(x['query']['start-date']) >= secondStart and arrow.get(x['query']['start-date']) <= secondEnd]
@@ -122,11 +121,15 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
-    # TODO:
     def dayvsLastYear(self, data):
         t = 'dayvsLastYear'
         print t
         currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = currentEnd
+        lastEnd = currentEnd.replace(years=-1)
+        lastStart = lastEnd
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last t)
 
     def generateInsights(self, dif, n, t='type'):
         insights = []
