@@ -13,8 +13,7 @@ class Insights(object):
         results = [];
 
         if len(self.data) < 1:
-            pass
-            # throw an error
+            raise Exception('No Data')
         elif len(self.data) == 1:
             pass
             days = self.splitByDate(self.data[0])
