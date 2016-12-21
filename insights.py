@@ -24,10 +24,27 @@ class Insights(object):
             days = self.data
             self.checkContiguousDates(days)
 
+        dateStr = days[-1]["query"]["start-date"]
+        if len(date) > 10:
+            date = arrow.get(re.match(self.dateRegex, date).group())
+        else:
+            date = arrow.get(dateStr)
 
         results.append(self.dayvsYesterday(days))
-        # results.append(self.weekToDate(days))
-        # results.append(self.monthToDate(days))
+
+        if date.weekday() + 7 < len(days):
+            results.append(self.weekToDate(days))
+
+        if date.day + date.ceil('month').day < len(days):
+            results.append(self.monthToDate(days))
+
+        if (date - date.floor('quarter')).days + 92 < len(days):
+            results.append(self.qtrToDate(days))
+
+        
+        # yearToDate
+        # dayvsLastYear
+
         # Harvest some shit
         return results
 
