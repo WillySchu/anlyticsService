@@ -29,6 +29,7 @@ class Insights(object):
             self.checkContiguousDates(days)
 
         dateStr = days[-1]["query"]["start-date"]
+        # remove time component of date if applicable
         if len(date) > 10:
             date = arrow.get(re.match(self.dateRegex, date).group())
         else:
@@ -60,6 +61,7 @@ class Insights(object):
         dates = {x[0] for x in data['rows']}
 
         for date in dates:
+            # remove time component of date if applicable
             if len(date) > 10:
                 dDate = re.match(self.dateRegex, date).group()
             else:
