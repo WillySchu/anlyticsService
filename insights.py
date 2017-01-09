@@ -8,6 +8,10 @@ class Insights(object):
         self.data = data
         self.dateRegex = r".+?(?=T)"
 
+    # Main function for insight generation
+    # generates as many possible insights if data is contiguous
+    # else if two sets of data, compares those two
+    # @returns Dict of generated insights
     def process(self):
         logging.info('Harvesting...')
         results = [];
@@ -41,13 +45,16 @@ class Insights(object):
         if (date - date.floor('quarter')).days + 92 < len(days):
             results.append(self.qtrToDate(days))
 
-        
+
         # yearToDate
         # dayvsLastYear
 
         # Harvest some shit
         return results
 
+    # Takes a group of time seriesed data and splits it out into groups for individual days
+    # @param Dict of unsorted time seriesed data
+    # @returns Array of data, sorted by date
     def splitByDate(self, data):
         result = []
         dates = {x[0] for x in data['rows']}
@@ -72,17 +79,35 @@ class Insights(object):
 
         return result
 
+    # Checks data to see if it contains all contiguous dates
+    # if data is not contiguous, throws an error
+    # @param Array of date sorted data
+    # @returns Nothing
     def checkContiguousDates(self, data):
         numDays = (arrow.get(data[-1]['query']['start-date']) - arrow.get(data[0]['query']['start-date'])).days + 1
         if numDays != len(data):
             raise Exception('data set not contiguous')
 
+    # Takes two arrays, aggregates them by date, compares them, and returns insights
+    # @param Array first array
+    # @param Array second array
+    # @param String type of insight
+    # @param Int number of insights to generate
+    # @returns Array of insight dicts
     def compareArbitrary(self, current, last, t='type', n=5):
         current = self.aggregate(current)
         last = self.aggregate(last)
         dif = self.compare(current, last)
         return self.generateInsights(dif, n, t)
 
+    # Splits an array of data up given the arbitrary params
+    # @param Array of ga style time seriesed data
+    # @param String start date of first period
+    # @param String end date of first period
+    # @param String start date of second period
+    # @param String end date of second period
+    # @param String the type name of the insights to be generated
+    # @returns Tuple of data arrays
     def arbitraryPeriod(self, data, firstStart, firstEnd, secondStart, secondEnd):
         fp = [x for x in data if arrow.get(x['query']['start-date']) >= firstStart and arrow.get(x['query']['start-date']) <= firstEnd]
         sp = [x for x in data if arrow.get(x['query']['start-date']) >= secondStart and arrow.get(x['query']['start-date']) <= secondEnd]
@@ -148,6 +173,11 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # Generates insight dicts from compared and scored ga data
+    # @param Dict compared and scored data
+    # @param Int64 number of insights to generate
+    # @param String type of insights to be generated
+    # @returns Array of insight dicts
     def generateInsights(self, dif, n, t='type'):
         insights = []
         meta = dif['meta']
@@ -169,6 +199,11 @@ class Insights(object):
         insights = sorted(insights, key=lambda d: d['significance'])
         return insights[-n:]
 
+    # Generates a significance score for a provided insight
+    # @param Dict insight to generate score for
+    # @param Dict comparison data that contains necessary metadata
+    # @param Dict store of largest values used for normalization
+    # @returns Float64 significance score of insight
     def scoreSignificance(self, insight, dif, largest):
         mag = dif['magnitude']
         insight['magnitude'] = mag
@@ -178,6 +213,10 @@ class Insights(object):
         normPerc = abs(insight['percentChange']) / largest['perc']
         return normMag + normPerc
 
+    # Compares two aggregated sets of ga style data to find % changes for each row
+    # @param Dict first set of data, most recent
+    # @param Dict second set of data, historical
+    # @returns Dict a dictionary containing the % change for each row as well as metadata about the sets as a whole
     def compare(self, first, second):
         dif = {}
         largest = {}
@@ -216,6 +255,9 @@ class Insights(object):
         dif['meta'] = meta
         return dif
 
+    # Aggregates and array of ga style time seriesed dictionaries into one, date agnostic, dictionary
+    # @param Array of seperate ga style dicts
+    # @returns Dict of aggregated data
     def aggregate(self, data):
         agg = {}
         meta = {}
