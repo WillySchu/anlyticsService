@@ -5,7 +5,7 @@ import Queue
 import logging
 
 from insights import Insights
-from forecast import Forecast
+# from forecast import Forecast
 
 r = redis.StrictRedis(host='localhost', port=6379, db=0)
 p = redis.StrictRedis(host='localhost', port=6379, db=0)
@@ -26,10 +26,10 @@ class InsightWorker(object):
     def go(self, data):
         print('starting')
         envelope = json.loads(data[1])
-        # ins = Insights(envelope['payload'])
-        fcast = Forecast(envelope['payload'])
+        ins = Insights(envelope['payload'])
+        # fcast = Forecast(envelope['payload'])
         try:
-            envelope['payload'] = fcast.process()
+            envelope['payload'] = ins.process()
         except Exception as err:
             logging.error(err)
             envelope['payload'] = err.args

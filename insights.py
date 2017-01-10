@@ -30,8 +30,8 @@ class Insights(object):
 
         dateStr = days[-1]["query"]["start-date"]
         # remove time component of date if applicable
-        if len(date) > 10:
-            date = arrow.get(re.match(self.dateRegex, date).group())
+        if len(dateStr) > 10:
+            date = arrow.get(re.match(self.dateRegex, dateStr).group())
         else:
             date = arrow.get(dateStr)
 
@@ -46,6 +46,7 @@ class Insights(object):
         if (date - date.floor('quarter')).days + 92 < len(days):
             results.append(self.qtrToDate(days))
 
+        print 'prce'
 
         # yearToDate
         # dayvsLastYear
@@ -141,7 +142,7 @@ class Insights(object):
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('quarter')
         lastEnd = currentEnd.replace(quarters=-1)
-        lastStart - lastEnd.floor('quarter')
+        lastStart = lastEnd.floor('quarter')
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
