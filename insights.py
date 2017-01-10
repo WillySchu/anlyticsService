@@ -175,6 +175,16 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    def weekvsLastYear(self, data):
+        t = 'weekvsLastYear'
+        logging.info(t)
+        currentEnd = arrow.get(data[-1]['query']['start-date'])
+        currentStart = currentEnd.floor('week')
+        lastEnd = currentEnd.replace(years=-1)
+        lastStart = lastEnd.floor('week')
+        current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
+        return self.compareArbitrary(current, last, t)
+
     # Generates insight dicts from compared and scored ga data
     # @param Dict compared and scored data
     # @param Int64 number of insights to generate
