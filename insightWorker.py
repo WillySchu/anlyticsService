@@ -2,10 +2,12 @@ import redis
 import json
 import threading
 import Queue
-import logging
 
+from log import Log
 from insights import Insights
 # from forecast import Forecast
+
+log = Log()
 
 r = redis.StrictRedis(host='localhost', port=6379, db=0)
 p = redis.StrictRedis(host='localhost', port=6379, db=0)
@@ -24,7 +26,7 @@ class InsightWorker(object):
                 self.pub()
 
     def go(self, data):
-        print('starting')
+        logging.info('starting')
         envelope = json.loads(data[1])
         ins = Insights(envelope['payload'])
         # fcast = Forecast(envelope['payload'])
@@ -40,8 +42,8 @@ class InsightWorker(object):
     def pub(self):
         s = self.q.get()
         p.publish(s['returnKey'], json.dumps(s))
-        print('published')
-        print(s['returnKey'])
+        logging.info('published')
+        logging.info(s['returnKey'])
 
 class iThread(threading.Thread):
     def __init__(self, callback, data):
