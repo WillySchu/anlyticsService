@@ -26,14 +26,14 @@ class InsightWorker(object):
                 self.pub()
 
     def go(self, data):
-        logging.info('starting')
+        log.info('starting')
         envelope = json.loads(data[1])
         ins = Insights(envelope['payload'])
         # fcast = Forecast(envelope['payload'])
         try:
             envelope['payload'] = ins.process()
         except Exception as err:
-            logging.error(err)
+            log.error(err)
             envelope['payload'] = err.args
             envelope['error'] = err.args
 
@@ -42,8 +42,8 @@ class InsightWorker(object):
     def pub(self):
         s = self.q.get()
         p.publish(s['returnKey'], json.dumps(s))
-        logging.info('published')
-        logging.info(s['returnKey'])
+        log.info('published')
+        log.info(s['returnKey'])
 
 class iThread(threading.Thread):
     def __init__(self, callback, data):
