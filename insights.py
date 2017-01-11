@@ -16,10 +16,10 @@ class Insights(object):
         logging.info('Harvesting...')
         results = [];
 
+
         if len(self.data) < 1:
             raise Exception('No Data')
         elif len(self.data) == 1:
-            pass
             days = self.splitByDate(self.data[0])
             self.checkContiguousDates(days)
         elif len(self.data) == 2:
@@ -45,8 +45,6 @@ class Insights(object):
 
         if (date - date.floor('quarter')).days + 92 < len(days):
             results.append(self.qtrToDate(days))
-
-        print 'prce'
 
         # yearToDate
         # dayvsLastYear
