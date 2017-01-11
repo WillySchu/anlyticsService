@@ -14,6 +14,7 @@ class Insights(object):
     # else if two sets of data, compares those two
     # @returns Dict of generated insights
     def process(self):
+        print 'hellloooooo'
         log.info('Harvesting...')
         results = [];
 
