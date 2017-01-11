@@ -9,7 +9,7 @@ log_dir = '/home/ubuntu/logs'
 
 class Log(logging.Logger):
     def __init__(self):
-        logging.Logger.__init__(self, __name__)
+        logging.Logger.__init__(self, 'analytics')
         self.setLevel(logging.DEBUG)
 
         sh = logging.StreamHandler()

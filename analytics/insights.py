@@ -1,7 +1,8 @@
 import re
 import arrow
+import logging
 
-print __name__
+log = logging.getLogger(__name__)
 
 class Insights(object):
     def __init__(self, data):
