@@ -1,7 +1,10 @@
 import re
 import arrow
-import logging
+
+from log import Log
 from datetime import date, timedelta
+
+log = Log()
 
 class Insights(object):
     def __init__(self, data):
@@ -13,7 +16,7 @@ class Insights(object):
     # else if two sets of data, compares those two
     # @returns Dict of generated insights
     def process(self):
-        logging.info('Harvesting...')
+        log.info('Harvesting...')
         results = [];
 
 
@@ -116,7 +119,7 @@ class Insights(object):
 
     def weekToDate(self, data):
         t = 'weekToDate'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('week')
         lastEnd = currentEnd.replace(weeks=-1)
@@ -126,7 +129,7 @@ class Insights(object):
 
     def monthToDate(self, data):
         t = 'monthToDate'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('month')
         lastEnd = currentEnd.replace(months=-1)
@@ -136,7 +139,7 @@ class Insights(object):
 
     def qtrToDate(self, data):
         t = 'qtrToDate'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('quarter')
         lastEnd = currentEnd.replace(quarters=-1)
@@ -146,7 +149,7 @@ class Insights(object):
 
     def yearToDate(self, data):
         t = 'yearToDate'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('year')
         lastEnd = currentEnd.replace(years=-1)
@@ -156,7 +159,7 @@ class Insights(object):
 
     def dayvsYesterday(self, data):
         t = 'dayvsYesterday'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd
         lastEnd = currentEnd.replace(days=-1)
@@ -166,7 +169,7 @@ class Insights(object):
 
     def dayvsLastYear(self, data):
         t = 'dayvsLastYear'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd
         lastEnd = currentEnd.replace(years=-1)
@@ -176,7 +179,7 @@ class Insights(object):
 
     def weekvsLastYear(self, data):
         t = 'weekvsLastYear'
-        logging.info(t)
+        log.debug(t)
         currentEnd = arrow.get(data[-1]['query']['start-date'])
         currentStart = currentEnd.floor('week')
         lastEnd = currentEnd.replace(years=-1)
