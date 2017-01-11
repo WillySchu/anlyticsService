@@ -11,13 +11,16 @@ class Config(object):
         dirPath = os.path.dirname(filePath)
         baseDir = os.path.split(dirPath)[0]
         self.configDir = os.path.join(baseDir, 'config')
-        env = os.environ['NODE_ENV']
-        env = env if env in ['development', 'staging', 'production'] else 'development'
+        try:
+            env = os.environ['NODE_ENV']
+        except:
+            env = 'development'
+        self.env = env if env in ['development', 'staging', 'production'] else 'development'
         configFilePath = 'node/config.json'
-        self.configFile = os.path.join(self.configDir, env, configFilePath)
+        self.configFile = os.path.join(self.configDir, self.env, configFilePath)
 
         with open(self.configFile) as configJSON:
-            self.cfg = json.load(configJSON)['env'][env]
+            self.cfg = json.load(configJSON)['env'][self.env]
 
     def __getitem__(self, key):
         if key in self.cfg:
