@@ -2,7 +2,6 @@ import re
 import arrow
 
 from log import Log
-from datetime import date, timedelta
 
 log = Log()
 
