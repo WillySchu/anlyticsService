@@ -4,10 +4,10 @@ import threading
 import Queue
 
 from log import Log
+log = Log()
+
 from insights import Insights
 # from forecast import Forecast
-
-log = Log()
 
 r = redis.StrictRedis(host='localhost', port=6379, db=0)
 p = redis.StrictRedis(host='localhost', port=6379, db=0)
