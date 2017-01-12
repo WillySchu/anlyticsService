@@ -2,12 +2,13 @@ import redis
 import json
 import threading
 import Queue
+import traceback
 
 from log import Log
 log = Log()
 
 from analytics.insights import Insights
-# from forecast import Forecast
+from analytics.forecast import Forecast
 
 r = redis.StrictRedis(host='localhost', port=6379, db=0)
 p = redis.StrictRedis(host='localhost', port=6379, db=0)
@@ -29,13 +30,15 @@ class InsightWorker(object):
         log.info('starting')
         envelope = json.loads(data[1])
         ins = Insights(envelope['payload'])
-        # fcast = Forecast(envelope['payload'])
+        fcast = Forecast(envelope['payload'])
         try:
+            fcast.process()
             envelope['payload'] = ins.process()
-        except Exception as err:
+        except:
+            err = traceback.format_exc()
             log.error(err)
-            envelope['payload'] = err.args
-            envelope['error'] = err.args
+            envelope['payload'] = err
+            envelope['error'] = err
 
         self.q.put(envelope)
 
