@@ -30,9 +30,9 @@ class InsightWorker(object):
         log.info('starting')
         envelope = json.loads(data[1])
         ins = Insights(envelope['payload'])
-        fcast = Forecast(envelope['payload'])
+        # fcast = Forecast(envelope['payload'])
         try:
-            fcast.process()
+            # fcast.process()
             envelope['payload'] = ins.process()
         except:
             err = traceback.format_exc()

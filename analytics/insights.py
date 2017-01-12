@@ -114,7 +114,7 @@ class Insights(object):
     def arbitraryPeriod(self, data, firstStart, firstEnd, secondStart, secondEnd):
         fp = [x for x in data if arrow.get(x['query']['start-date']) >= firstStart and arrow.get(x['query']['start-date']) <= firstEnd]
         sp = [x for x in data if arrow.get(x['query']['start-date']) >= secondStart and arrow.get(x['query']['start-date']) <= secondEnd]
-        return (sp, fp)
+        return (fp, sp)
 
     def weekToDate(self, data):
         t = 'weekToDate'
@@ -262,8 +262,8 @@ class Insights(object):
                     dif[met][dim]['mag2'] = second[met][dim]
 
         meta = {}
-        meta['startDate'] = second['meta']['endDate']
-        meta['endDate'] = first['meta']['startDate']
+        meta['startDate'] = second['meta']['startDate']
+        meta['endDate'] = first['meta']['endDate']
         meta['largest'] = largest
         dif['meta'] = meta
         return dif
@@ -313,6 +313,6 @@ class Insights(object):
                         else:
                             agg[met][dimName] = float(day['rows'][i][j])
 
-            meta['endDate'] = meta['endDate'].format('YYYY-MM-DD')
-            meta['startDate'] = meta['startDate'].format('YYYY-MM-DD')
-            return agg
+        meta['endDate'] = meta['endDate'].format('YYYY-MM-DD')
+        meta['startDate'] = meta['startDate'].format('YYYY-MM-DD')
+        return agg
