@@ -262,8 +262,8 @@ class Insights(object):
                     dif[met][dim]['mag2'] = second[met][dim]
 
         meta = {}
-        meta['startDate'] = second['meta']['startDate']
-        meta['endDate'] = first['meta']['endDate']
+        meta['startDate'] = second['meta']['endDate']
+        meta['endDate'] = first['meta']['startDate']
         meta['largest'] = largest
         dif['meta'] = meta
         return dif
