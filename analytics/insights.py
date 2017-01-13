@@ -205,11 +205,11 @@ class Insights(object):
                 insight['dimensions'] = dim
                 insight['type'] = t
                 insight['percentChange'] = dif[met][dim]['score']
-                insight['significance'] = self.scoreSignificance(insight, dif[met][dim], meta['largest'][met])
+                insight['score'] = self.scoreSignificance(insight, dif[met][dim], meta['largest'][met])
                 insights.append(insight)
 
         n = n if n < len(insights) else len(insights)
-        insights = sorted(insights, key=lambda d: d['significance'])
+        insights = sorted(insights, key=lambda d: d['score'])
         return insights[-n:]
 
     # Generates a significance score for a provided insight
