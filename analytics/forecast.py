@@ -32,17 +32,20 @@ class Forecast:
         # two indices without having to iterate over the third, but I'm
         # dumb so this will have to do for now
         dedup = {}
-        for index, val in self.df['ga:sessions'].iteritems():
-            idx = index[:2]
-            try:
-                if dedup[idx] is True:
-                    continue
-            except:
-                dedup[idx] = True
+        idxlength = len(self.data[0]['query']['dimensions']) - 1
+        # print self.data[0]['query']
+        for met in self.data[0]['query']['metrics']:
+            for index, val in self.df[met].iteritems():
+                idx = index[:idxlength]
+                try:
+                    if dedup[idx] is True:
+                        continue
+                except:
+                    dedup[idx] = True
 
-                model = self.auto_arima(self.df['ga:sessions'][idx])
-                # print model.summary()
-                break
+                    model = self.auto_arima(self.df[met][idx])
+                    # print model.summary()
+                    break
 
     def rmse(self, resid):
         rmse = 0
@@ -56,20 +59,23 @@ class Forecast:
         seasonal_order = orders[3:]
         seasonal_order = np.insert(seasonal_order, 3, 7)
         try:
-            fit = sm.tsa.statespace.SARIMAX(x, trend='n', order=order, seasonal_order=seasonal_order).fit()
+            fit = sm.tsa.statespace.SARIMAX(x.astype(float), trend='n', order=order, seasonal_order=seasonal_order, freq=7).fit()
             rmse = self.rmse(fit.resid)
+            print rmse
             if math.isnan(rmse):
                 print fit.resid
                 return float('inf')
             print rmse
             return rmse
-        except:
+        except Exception as err:
+            print err
             return float('inf')
 
     def auto_arima(self, x):
         grid = (slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1))
         res = brute(self.test_arima, grid, args=(x,), finish=None)
-        print res
+        if any(i != 0 for i in res):
+            print res
         return res
         # order = res[0][:3]
         # seasonal_order = res[0][3:]
