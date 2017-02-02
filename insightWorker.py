@@ -29,11 +29,12 @@ class InsightWorker(object):
     def go(self, data):
         log.info('starting')
         envelope = json.loads(data[1])
-        # ins = Insights(envelope['payload'])
+        ins = Insights(envelope['payload'])
         fcast = Forecast(envelope['payload'])
+        envelope['payload'] = {}
         try:
-            envelope['payload'] = fcast.process()
-            # envelope['payload'] = ins.process()
+            envelope['payload']['forecasts'] = fcast.process()
+            envelope['payload']['insights'] = ins.process()
         except:
             err = traceback.format_exc()
             log.error(err)
