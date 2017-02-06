@@ -7,4 +7,4 @@ setup(name='analyticsService',
     author='WillySchu',
     author_email='willjschumacher@gmail.com',
     packages=['analytics'],
-    install_requires=['arrow', 'pytest', 'redis', 'pandas', 'numpy'])
+    install_requires=['arrow', 'pytest', 'pandas', 'numpy'])
