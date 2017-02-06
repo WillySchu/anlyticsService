@@ -4,14 +4,14 @@ import threading
 import Queue
 import traceback
 
-from log import Log
-log = Log()
+# from log import Log
+# log = Log()
 
 from analytics.insights import Insights
 from analytics.forecast import Forecast
 
-r = redis.StrictRedis(host='localhost', port=6379, db=0)
-p = redis.StrictRedis(host='localhost', port=6379, db=0)
+r = redis.StrictRedis(host='redis', port=6379, db=0)
+p = redis.StrictRedis(host='redis', port=6379, db=0)
 
 class InsightWorker(object):
     def __init__(self, queue):
@@ -27,7 +27,7 @@ class InsightWorker(object):
                 self.pub()
 
     def go(self, data):
-        log.info('starting')
+        # log.info('starting')
         envelope = json.loads(data[1])
         ins = Insights(envelope['payload'])
         fcast = Forecast(envelope['payload'])
@@ -37,7 +37,7 @@ class InsightWorker(object):
             envelope['payload']['insights'] = ins.process()
         except:
             err = traceback.format_exc()
-            log.error(err)
+            # log.error(err)
             envelope['payload'] = err
             envelope['error'] = err
 
@@ -46,8 +46,8 @@ class InsightWorker(object):
     def pub(self):
         s = self.q.get()
         p.publish(s['returnKey'], json.dumps(s))
-        log.info('published')
-        log.info(s['returnKey'])
+        # log.info('published')
+        # log.info(s['returnKey'])
 
 class iThread(threading.Thread):
     def __init__(self, callback, data):
