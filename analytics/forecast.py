@@ -70,7 +70,9 @@ class Forecast:
                     if len(self.df[met][idx]) < self.length or (self.df[met][idx].astype(float) == 0).any():
                         continue
                     model = self.auto_arima(self.df[met][idx])
-                    pred = model.predict(start=self.length, end=self.length + self.fcastLength-1, dynamic=True)
+                    if model == None:
+                        continue
+                    pred = model.predict(start=self.length, end=self.length + self.fcastLength, dynamic=True)
                     values = pd.concat([self.df[met][idx], pred])
 
                     # reconstruct series with dimensions from original and
