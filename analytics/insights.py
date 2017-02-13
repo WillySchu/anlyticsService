@@ -5,6 +5,9 @@ import logging
 log = logging.getLogger(__name__)
 
 class Insights(object):
+    # Constructor function takes a GA style data response
+    # @param List GA style data with ga:date as a dimension
+    # @returns None
     def __init__(self, data):
         self.data = data
         self.dateRegex = r".+?(?=T)"
@@ -18,12 +21,15 @@ class Insights(object):
         log.info('Harvesting...')
         results = [];
 
-
+        # Prepare data if necessary, insights is capable of handling several
+        # different formats coming in
         if len(self.data) < 1:
             raise Exception('No Data')
         elif len(self.data) == 1:
             days = self.splitByDate(self.data[0])
             self.checkContiguousDates(days)
+        # if length is 2, don't worry about dates and simply compare
+        # the two datasets
         elif len(self.data) == 2:
             return [compareArbitrary(self.data[1], self.data[0], 'adHoc')]
         else:
@@ -37,26 +43,31 @@ class Insights(object):
         else:
             date = arrow.get(dateStr)
 
-        results.append(self.dayvsYesterday(days))
+        results += self.dayvsYesterday(days)
 
         if date.weekday() + 7 < len(days):
-            results.append(self.weekToDate(days))
+            results += self.weekToDate(days)
 
         if date.day + date.ceil('month').day < len(days):
-            results.append(self.monthToDate(days))
+            results += self.monthToDate(days)
 
         if (date - date.floor('quarter')).days + 92 < len(days):
-            results.append(self.qtrToDate(days))
+            results += self.qtrToDate(days)
 
-        # yearToDate
-        # dayvsLastYear
+        if (date - date.replace(years=-1)).days < len(days):
+            results += self.dayvsLastYear(days)
+
+        if (date - date.floor('year')).days + 366 < len(days):
+            resutls += self.yearToDate(days)
+
+
 
         # Harvest some shit
         return results
 
     # Takes a group of time seriesed data and splits it out into groups for individual days
     # @param Dict of unsorted time seriesed data
-    # @returns Array of data, sorted by date
+    # @returns List of data, sorted by date
     def splitByDate(self, data):
         result = []
         dates = {x[0] for x in data['rows']}
@@ -84,7 +95,7 @@ class Insights(object):
 
     # Checks data to see if it contains all contiguous dates
     # if data is not contiguous, throws an error
-    # @param Array of date sorted data
+    # @param List of date sorted data
     # @returns Nothing
     def checkContiguousDates(self, data):
         numDays = (arrow.get(data[-1]['query']['start-date']) - arrow.get(data[0]['query']['start-date'])).days + 1
@@ -92,11 +103,11 @@ class Insights(object):
             raise Exception('data set not contiguous')
 
     # Takes two arrays, aggregates them by date, compares them, and returns insights
-    # @param Array first array
-    # @param Array second array
+    # @param List first array
+    # @param List second array
     # @param String type of insight
     # @param Int number of insights to generate
-    # @returns Array of insight dicts
+    # @returns List of insight dicts
     def compareArbitrary(self, current, last, t='type', n=5):
         current = self.aggregate(current)
         last = self.aggregate(last)
@@ -104,7 +115,7 @@ class Insights(object):
         return self.generateInsights(dif, n, t)
 
     # Splits an array of data up given the arbitrary params
-    # @param Array of ga style time seriesed data
+    # @param List of ga style time seriesed data
     # @param String start date of first period
     # @param String end date of first period
     # @param String start date of second period
@@ -116,6 +127,9 @@ class Insights(object):
         sp = [x for x in data if arrow.get(x['query']['start-date']) >= secondStart and arrow.get(x['query']['start-date']) <= secondEnd]
         return (fp, sp)
 
+    # Compares this week so far to the same period last week
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def weekToDate(self, data):
         t = 'weekToDate'
         log.debug(t)
@@ -126,6 +140,9 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # Compares month to date to same period last month
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def monthToDate(self, data):
         t = 'monthToDate'
         log.debug(t)
@@ -136,6 +153,9 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # Compares quarter to date to same period last quarter
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def qtrToDate(self, data):
         t = 'qtrToDate'
         log.debug(t)
@@ -146,6 +166,9 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # Compares year to date to same period last year
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def yearToDate(self, data):
         t = 'yearToDate'
         log.debug(t)
@@ -156,6 +179,9 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # compares most recent day to previous day
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def dayvsYesterday(self, data):
         t = 'dayvsYesterday'
         log.debug(t)
@@ -166,6 +192,9 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # Compares most recent day to the same day last year
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def dayvsLastYear(self, data):
         t = 'dayvsLastYear'
         log.debug(t)
@@ -176,6 +205,9 @@ class Insights(object):
         current, last = self.arbitraryPeriod(data, currentStart, currentEnd, lastStart, lastEnd)
         return self.compareArbitrary(current, last, t)
 
+    # Compares this week so far to the same period last year
+    # @param List data to compare
+    # @returns List contains insights Dicts
     def weekvsLastYear(self, data):
         t = 'weekvsLastYear'
         log.debug(t)
@@ -190,7 +222,7 @@ class Insights(object):
     # @param Dict compared and scored data
     # @param Int64 number of insights to generate
     # @param String type of insights to be generated
-    # @returns Array of insight dicts
+    # @returns List of insight dicts
     def generateInsights(self, dif, n, t='type'):
         insights = []
         meta = dif['meta']
@@ -213,6 +245,9 @@ class Insights(object):
         return insights[-n:]
 
     # Generates a significance score for a provided insight
+    # This score is based on the size of the percentage change,
+    # normalized for its metric, summed with the relative size
+    # of the segment's metric value
     # @param Dict insight to generate score for
     # @param Dict comparison data that contains necessary metadata
     # @param Dict store of largest values used for normalization
@@ -269,7 +304,7 @@ class Insights(object):
         return dif
 
     # Aggregates and array of ga style time seriesed dictionaries into one, date agnostic, dictionary
-    # @param Array of seperate ga style dicts
+    # @param List of seperate ga style dicts
     # @returns Dict of aggregated data
     def aggregate(self, data):
         agg = {}
