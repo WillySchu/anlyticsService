@@ -4,6 +4,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+changeWeight = 2
+magWeight = 3
+
 class Insights(object):
     # Constructor function takes a GA style data response
     # @param List GA style data with ga:date as a dimension
@@ -258,7 +261,7 @@ class Insights(object):
         insight['mag1'] = dif['mag1']
         insight['mag2'] = dif['mag2']
         normMag = mag / largest['mag']
-        normPerc = abs(insight['percentChange']) / largest['perc']
+        normPerc = changeWeight * abs(insight['percentChange']) / magWeight * largest['perc']
         return normMag + normPerc
 
     # Compares two aggregated sets of ga style data to find % changes for each row
