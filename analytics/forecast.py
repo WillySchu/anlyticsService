@@ -16,9 +16,12 @@ class Forecast:
 
         if len(self.data) < 1:
             raise Exception('No Data')
-
-        self.start_date = arrow.get(data[0]['meta']['minDate'])
-        self.end_date = arrow.get(data[0]['meta']['maxDate'])
+        try:
+            self.start_date = arrow.get(data[0]['meta']['minDate'])
+            self.end_date = arrow.get(data[0]['meta']['maxDate'])
+        except:
+            self.start_date = arrow.get(data[0]['query']['start-date'])
+            self.end_date = arrow.get(data[0]['query']['end-date'])
         self.length = (self.end_date - self.start_date).days + 1
         # number of days to forecast
         self.fcastLength = self.length // 5
