@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 
-from copy import deepcopy
 from scipy.optimize import brute
 
 class Forecast:
@@ -44,6 +43,8 @@ class Forecast:
     # Make forecasts and then reformat responses
     # @returns None
     def process(self):
+        if self.fcastLength < 1:
+            raise Exception('Insufficient data for forecasting')
         self.forecast()
         return self.fcasts
 
