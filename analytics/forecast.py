@@ -20,9 +20,12 @@ class Forecast:
         try:
             self.start_date = arrow.get(data[0]['meta']['minDate'])
             self.end_date = arrow.get(data[0]['meta']['maxDate'])
-        except:
+        except ValueError:
             self.start_date = arrow.get(data[0]['query']['start-date'])
             self.end_date = arrow.get(data[0]['query']['end-date'])
+        except Exception as e:
+            raise e
+
         self.length = (self.end_date - self.start_date).days + 1
         # number of days to forecast
         self.fcastLength = self.length // 5
@@ -66,13 +69,13 @@ class Forecast:
             if self.idxlength > 0:
                 for index, val in self.df[met].iteritems():
                     idx = index[:self.idxlength]
-                    try:
-                        if dedup[idx] is True:
-                            continue
-                    except:
-                        dedup[idx] = True
-                        n += 1
-                        self.get_forecast(self.df[met][idx], idx, met)
+
+                    if dedup.get(idx, False):
+                        continue
+
+                    dedup[idx] = True
+                    n += 1
+                    self.get_forecast(self.df[met][idx], idx, met)
 
                     # hack for now,
                     # only generate one forecasted segment per metric
@@ -171,17 +174,17 @@ class Forecast:
             if self.idxlength > 0:
                 for i, v in sub.iteritems():
                     idx = i[:self.idxlength]
-                    try:
-                        if dedup[idx]:
-                            continue
-                    except:
-                        dedup[idx] = True
-                        vals = sub[idx].values
 
-                        if np.isnan(sub[idx].values).any():
-                            continue
+                    if dedup.get(idx, False):
+                        continue
 
-                        res.append(self.format_forecast(met, vals, idx))
+                    dedup[idx] = True
+                    vals = sub[idx].values
+
+                    if np.isnan(sub[idx].values).any():
+                        continue
+
+                    res.append(self.format_forecast(met, vals, idx))
             else:
                 res.append(self.format_forecast(met, sub.values, []))
 
