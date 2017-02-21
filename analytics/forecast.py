@@ -180,7 +180,6 @@ class Forecast:
         # dumb so this will have to do for now
         for met, sub in df.iteritems():
             dedup = {}
-            print sub
             if self.idxlength > 0:
                 for i, v in sub.iteritems():
                     idx = i[:self.idxlength]
