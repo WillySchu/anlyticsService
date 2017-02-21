@@ -23,8 +23,6 @@ class Forecast:
         except ValueError:
             self.start_date = arrow.get(data[0]['query']['start-date'])
             self.end_date = arrow.get(data[0]['query']['end-date'])
-        except Exception as e:
-            raise e
 
         self.length = (self.end_date - self.start_date).days + 1
         # number of days to forecast
