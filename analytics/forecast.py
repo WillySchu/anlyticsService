@@ -62,33 +62,23 @@ class Forecast:
             n = 0;
             dedup = {}
             preds[met] = pd.DataFrame(columns=self.indices+[met])
-            for index, val in self.df[met].iteritems():
-                idx = index[:self.idxlength]
-                try:
-                    if dedup[idx] is True:
-                        continue
-                except:
-                    dedup[idx] = True
-                    n += 1
-                    if len(self.df[met][idx]) < self.length or (self.df[met][idx].astype(float) == 0).any():
-                        continue
-                    model = self.auto_arima(self.df[met][idx])
-                    if model == None:
-                        continue
-                    pred = model.predict(start=self.length, end=self.length + self.fcastLength, dynamic=True)
-                    values = pd.concat([self.df[met][idx], pred])
+            if self.idxlength > 0:
+                for index, val in self.df[met].iteritems():
+                    idx = index[:self.idxlength]
+                    try:
+                        if dedup[idx] is True:
+                            continue
+                    except:
+                        dedup[idx] = True
+                        n += 1
+                        self.get_forecast(self.df[met][idx], preds, idx, met)
 
-                    # reconstruct series with dimensions from original and
-                    # forecasted values and append it to results DataFrame
-                    for i, v in values.iteritems():
-                        row = list(idx) + [i,v]
-                        row = pd.Series(row, index=self.indices+[met])
-                        preds[met] = preds[met].append(row, ignore_index=True)
-
-                # hack for now,
-                # only generate one forecasted segment per metric
-                if n > 3:
-                    break
+                    # hack for now,
+                    # only generate one forecasted segment per metric
+                    if n > 3:
+                        break
+            else:
+                self.get_forecast(self.df[met], preds, [], met)
 
         # merge separate metrics back into one dataframe
         for met in mets:
@@ -100,6 +90,22 @@ class Forecast:
                 print '============'
 
         return res.groupby(self.indices).sum()
+
+    def get_forecast(self, data, preds, idx, met):
+        if len(data) < self.length or (data.astype(float) == 0).any():
+            return None
+        model = self.auto_arima(data)
+        if model == None:
+            return None
+        pred = model.predict(start=self.length, end=self.length + self.fcastLength, dynamic=True)
+        values = pd.concat([data, pred])
+
+        # reconstruct series with dimensions from original and
+        # forecasted values and append it to results DataFrame
+        for i, v in values.iteritems():
+            row = list(idx) + [i,v]
+            row = pd.Series(row, index=self.indices+[met])
+            preds[met] = preds[met].append(row, ignore_index=True)
 
     # Root mean squared error function
     # calculates the rmse of a list of residuals, used to measure
@@ -174,28 +180,36 @@ class Forecast:
         # dumb so this will have to do for now
         for met, sub in df.iteritems():
             dedup = {}
-            for i, v in sub.iteritems():
-                idx = i[:self.idxlength]
-                try:
-                    if dedup[idx]:
-                        continue
-                except:
-                    dedup[idx] = True
-                    vals = sub[idx].values
+            print sub
+            if self.idxlength > 0:
+                for i, v in sub.iteritems():
+                    idx = i[:self.idxlength]
+                    try:
+                        if dedup[idx]:
+                            continue
+                    except:
+                        dedup[idx] = True
+                        vals = sub[idx].values
 
-                    if np.isnan(sub[idx].values).any():
-                        continue
+                        if np.isnan(sub[idx].values).any():
+                            continue
 
-                    fcast = {}
+                        res.append(self.format_forecast(met, vals, idx))
+            else:
+                res.append(self.format_forecast(met, sub.values, []))
 
-                    fcast['startDate'] = self.start_date.format('YYYY-MM-DD')
-                    fcast['endDate'] = self.end_date.format('YYYY-MM-DD')
-                    fcast['length'] = self.fcastLength
-                    fcast['metric'] = met
-                    fcast['dimensions'] = ','.join(i for i in idx)
-                    fcast['values'] = vals[:-self.fcastLength].tolist()
-                    fcast['forecast'] = vals[-self.fcastLength:].tolist()
-
-                    res.append(fcast)
 
         return res
+
+    def format_forecast(self, met, vals, idx):
+        fcast = {}
+
+        fcast['startDate'] = self.start_date.format('YYYY-MM-DD')
+        fcast['endDate'] = self.end_date.format('YYYY-MM-DD')
+        fcast['length'] = self.fcastLength
+        fcast['metric'] = met
+        fcast['dimensions'] = ','.join(i for i in idx)
+        fcast['values'] = vals[:-self.fcastLength].tolist()
+        fcast['forecast'] = vals[-self.fcastLength:].tolist()
+
+        return fcast
