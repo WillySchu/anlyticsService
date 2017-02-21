@@ -184,7 +184,6 @@ class Forecast:
             else:
                 res.append(self.format_forecast(met, sub.values, []))
 
-
         return res
 
     # Builds a forecast results object given appropriate values
