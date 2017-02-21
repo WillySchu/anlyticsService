@@ -91,7 +91,6 @@ class Forecast:
         if model == None:
             return None
         pred = model.predict(start=self.length, end=self.length + self.fcastLength - 1, dynamic=True)
-        values = pd.concat([data, pred])
 
         self.fcasts.append(self.format_forecast(met, data.values, pred.values, idx))
 
