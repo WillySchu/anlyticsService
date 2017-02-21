@@ -90,9 +90,9 @@ class Forecast:
         model = self.auto_arima(data)
         if model == None:
             return None
-        pred = model.predict(start=self.length, end=self.length + self.fcastLength - 1, dynamic=True)
+        pred = model.get_prediction(start=self.length, end=self.length + self.fcastLength, dynamic=True)
 
-        self.fcasts.append(self.format_forecast(met, data.values, pred.values, idx))
+        self.fcasts.append(self.format_forecast(met, data.values, pred.predicted_mean.values, idx))
 
     # Root mean squared error function
     # calculates the rmse of a list of residuals, used to measure
@@ -203,6 +203,6 @@ class Forecast:
         fcast['metric'] = met
         fcast['dimensions'] = ','.join(i for i in idx)
         fcast['values'] = vals.tolist()
-        fcast['forecast'] = pred.tolist()
+        fcast['forecast'] = pred.tolist()[1:]
 
         return fcast
