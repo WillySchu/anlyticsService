@@ -41,7 +41,7 @@ class Forecast:
             self.df[met] = self.df[met].astype(float)
 
     # Make forecasts and then reformat responses
-    # @returns None
+    # @returns List forecast objects
     def process(self):
         if self.fcastLength < 1:
             raise Exception('Insufficient data for forecasting')
