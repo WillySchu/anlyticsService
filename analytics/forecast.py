@@ -92,7 +92,7 @@ class Forecast:
             return None
         pred = model.get_prediction(start=self.length, end=self.length + self.fcastLength, dynamic=True)
 
-        self.fcasts.append(self.format_forecast(met, data.values, pred.predicted_mean.values, idx))
+        self.fcasts.append(self.format_forecast(met, data.values, pred, idx))
 
     # Root mean squared error function
     # calculates the rmse of a list of residuals, used to measure
@@ -203,6 +203,8 @@ class Forecast:
         fcast['metric'] = met
         fcast['dimensions'] = ','.join(i for i in idx)
         fcast['values'] = vals.tolist()
-        fcast['forecast'] = pred.tolist()[1:]
+        fcast['forecast'] = pred.predicted_mean.values.tolist()[1:]
+        fcast['lower_ci'] = pred.conf_int().iloc[1:, 0].values.tolist()
+        fcast['upper_ci'] = pred.conf_int().iloc[1:, 1].values.tolist()
 
         return fcast
