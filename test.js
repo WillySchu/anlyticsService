@@ -8,6 +8,7 @@ res = JSON.parse(res);
 ic.send('queue', res, (o) => {
   if (o.error) console.log(o.error);
   console.log(o.payload);
+  console.log(o.payload.forecasts);
   console.log('done');
   process.exit(0)
 })

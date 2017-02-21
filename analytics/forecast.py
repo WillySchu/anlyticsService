@@ -97,7 +97,7 @@ class Forecast:
         model = self.auto_arima(data)
         if model == None:
             return None
-        pred = model.predict(start=self.length, end=self.length + self.fcastLength, dynamic=True)
+        pred = model.predict(start=self.length, end=self.length + self.fcastLength - 1, dynamic=True)
         values = pd.concat([data, pred])
 
         # reconstruct series with dimensions from original and
