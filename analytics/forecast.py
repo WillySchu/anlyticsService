@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 
+from copy import deepcopy
 from scipy.optimize import brute
 
 class Forecast:
@@ -13,6 +14,7 @@ class Forecast:
     # @returns None
     def __init__(self, data):
         self.data = data
+        self.fcasts = []
 
         if len(self.data) < 1:
             raise Exception('No Data')
@@ -42,8 +44,8 @@ class Forecast:
     # Make forecasts and then reformat responses
     # @returns None
     def process(self):
-        res = self.forecast()
-        return self.format_response(res)
+        self.forecast()
+        return self.fcasts
 
     # Creates forecasts
     # Loops through each seperate segment, tests it for length and continuity
@@ -52,7 +54,6 @@ class Forecast:
     def forecast(self):
         mets = self.data[0]['query']['metrics']
 
-        preds = {}
         self.idxlength = len(self.data[0]['query']['dimensions']) - 1
 
         # I feel like there should be a better way to iterate over the first
@@ -61,7 +62,6 @@ class Forecast:
         for met in mets:
             n = 0;
             dedup = {}
-            preds[met] = pd.DataFrame(columns=self.indices+[met])
             if self.idxlength > 0:
                 for index, val in self.df[met].iteritems():
                     idx = index[:self.idxlength]
@@ -71,27 +71,20 @@ class Forecast:
                     except:
                         dedup[idx] = True
                         n += 1
-                        self.get_forecast(self.df[met][idx], preds, idx, met)
+                        self.get_forecast(self.df[met][idx], idx, met)
 
                     # hack for now,
                     # only generate one forecasted segment per metric
                     if n > 3:
                         break
             else:
-                self.get_forecast(self.df[met], preds, [], met)
+                self.get_forecast(self.df[met], [], met)
 
-        # merge separate metrics back into one dataframe
-        for met in mets:
-            try:
-                res = res.merge(preds[met], on=self.indices, how='outer')
-            except Exception as err:
-                res = preds[met]
-                print err
-                print '============'
-
-        return res.groupby(self.indices).sum()
-
-    def get_forecast(self, data, preds, idx, met):
+    # Calls auto_arima and appends results to fcasts list given data parameters
+    # @param pandas Series segment of data to forecast
+    # @param List list of dimensions
+    # @param String metric
+    def get_forecast(self, data, idx, met):
         if len(data) < self.length or (data.astype(float) == 0).any():
             return None
         model = self.auto_arima(data)
@@ -100,12 +93,7 @@ class Forecast:
         pred = model.predict(start=self.length, end=self.length + self.fcastLength - 1, dynamic=True)
         values = pd.concat([data, pred])
 
-        # reconstruct series with dimensions from original and
-        # forecasted values and append it to results DataFrame
-        for i, v in values.iteritems():
-            row = list(idx) + [i,v]
-            row = pd.Series(row, index=self.indices+[met])
-            preds[met] = preds[met].append(row, ignore_index=True)
+        self.fcasts.append(self.format_forecast(met, data.values, pred.values, idx))
 
     # Root mean squared error function
     # calculates the rmse of a list of residuals, used to measure
@@ -200,7 +188,14 @@ class Forecast:
 
         return res
 
-    def format_forecast(self, met, vals, idx):
+    # Builds a forecast results object given appropriate values
+    # This should probably be replaced by a Class soon
+    # @param String metric
+    # @param pandas Series historical data used to forecast
+    # @param pandas Series forecast
+    # @param idx List dimensions
+    # @returns Object forecast object
+    def format_forecast(self, met, vals, pred, idx):
         fcast = {}
 
         fcast['startDate'] = self.start_date.format('YYYY-MM-DD')
@@ -208,7 +203,7 @@ class Forecast:
         fcast['length'] = self.fcastLength
         fcast['metric'] = met
         fcast['dimensions'] = ','.join(i for i in idx)
-        fcast['values'] = vals[:-self.fcastLength].tolist()
-        fcast['forecast'] = vals[-self.fcastLength:].tolist()
+        fcast['values'] = vals.tolist()
+        fcast['forecast'] = pred.tolist()
 
         return fcast
