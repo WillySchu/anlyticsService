@@ -61,6 +61,7 @@ class Forecast:
         # I feel like there should be a better way to iterate over the first
         # two indices without having to iterate over the third, but I'm
         # dumb so this will have to do for now
+        # MET-984
         for met in mets:
             n = 0;
             dedup = {}
