@@ -2,8 +2,10 @@
 
 import sys
 
+from time import sleep
 from git import git
 from validate import Benchmark
+from suppress_print import suppress_stdout_stderr
 
 def get_commit_id():
     status = git('st')
@@ -24,4 +26,8 @@ if __name__ == '__main__':
         raise Exception('Please provide path to datafile')
 
     bm = Benchmark(f)
-    print bm.test()
+    with suppress_stdout_stderr():
+        res = bm.test()
+
+
+    print res

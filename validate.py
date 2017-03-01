@@ -4,6 +4,7 @@ import math
 import pandas as pd
 
 from analytics.arima import auto_arima
+from suppress_print import suppress_stdout_stderr
 
 class Benchmark(object):
     def __init__(self, file, sep='\t', date_col=1):
@@ -30,6 +31,7 @@ class Benchmark(object):
 
             model = auto_arima(sess[dim][:l-vl+1])
             pred = model.get_prediction(start=start, end=l-1)
+
             resid = pred.predicted_mean - sess[dim][-vl:]
 
             sum_rmse += rmse(resid)
