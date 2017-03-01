@@ -1,11 +1,8 @@
 import arrow
-import math
 
-import statsmodels.api as sm
 import pandas as pd
-import numpy as np
 
-from scipy.optimize import brute
+from analytics.arima import auto_arima
 
 class Benchmark(object):
     def __init__(self, file, sep='\t', date_col=1):
@@ -13,16 +10,16 @@ class Benchmark(object):
         cols = list(self.data.columns.values)
         self.dim = cols[0]
         self.met = cols[-1]
+        self.dims = list(set(self.data[self.dim]))
         self.data = self.data.groupby([self.dim, 'ga:date']).sum()
 
     def test(self):
-        dims = list(set(self.data[self.dim]))
         sess = self.data[self.met]
 
         sum_rmse = 0
         t0 = arrow.get()
 
-        for dim in dims:
+        for dim in self.dims:
             l = len(sess[dim])
             if l < 82:
                 continue
@@ -36,23 +33,12 @@ class Benchmark(object):
 
             sum_rmse += rmse(resid)
 
+            break
+
         tf = arrow.get()
         duration = tf - t0
 
         return (duration, sum_rmse)
-
-def test_arima(orders, x):
-    order = orders[:3]
-    seasonal_order = orders[3:]
-    seasonal_order = np.insert(seasonal_order, 3, 7)
-    try:
-        fit = sm.tsa.statespace.SARIMAX(x, trend='n', order=order, seasonal_order=seasonal_order).fit()
-        if math.isnan(rmse(fit.resid)):
-            return float('inf')
-        return rmse(fit.resid)
-    except Exception as err:
-        print err
-        return float('inf')
 
 def rmse(resid):
     rmse = 0
@@ -60,19 +46,6 @@ def rmse(resid):
         rmse += math.sqrt(r**2)
 
     return rmse
-
-def auto_arima(x):
-        grid = (slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1), slice(0, 3, 1))
-        res = brute(test_arima, grid, args=(x,), finish=None)
-        if any(i != 0 for i in res):
-            # slice up orders
-            order = res[:3].astype(int)
-            seasonal_order = res[3:].astype(int)
-            # hardcode insert seven period seasonality
-            # this will need to become more dynamic later when we deal with
-            # multi day long periods
-            seasonal_order = np.insert(seasonal_order, 3, 7)
-            return sm.tsa.statespace.SARIMAX(x.astype(float), trend='n', order=order, seasonal_order=seasonal_order).fit()
 
 def clean_file(file, char='\x00'):
     h = open(file, 'r')
