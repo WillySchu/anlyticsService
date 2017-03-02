@@ -10,12 +10,11 @@ class InsightWorker(Worker):
         res = {}
         res['request'] = data
         res['request']['return_key'] = data['returnKey']
-
-        envelope = data
+        res['payload'] = {}
 
         try:
-            ins = Insights(envelope['payload'])
-            fcast = Forecast(envelope['payload'])
+            ins = Insights(data['payload'])
+            fcast = Forecast(data['payload'])
             res['payload']['insights'] = ins.process()
             res['payload']['forecasts'] = fcast.process()
         except:
