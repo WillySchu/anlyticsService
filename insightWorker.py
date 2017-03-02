@@ -1,61 +1,28 @@
-import redis
-import json
-import threading
-import Queue
+from redisworker import Worker
 import traceback
-
-# from log import Log
-# log = Log()
 
 from analytics.insights import Insights
 from analytics.forecast import Forecast
 
-r = redis.StrictRedis(host='localhost', port=6379, db=0)
-p = redis.StrictRedis(host='localhost', port=6379, db=0)
-
-class InsightWorker(object):
-    def __init__(self, queue):
-        self.queue = queue
-        self.q = Queue.Queue()
-
-    def listen(self):
-        print 'listening...'
-        while True:
-            o = r.brpop(self.queue, timeout=60)
-            if o is not None:
-                t = iThread(self.go, o)
-                t.start()
-                self.pub()
-
-    def go(self, data):
+class InsightWorker(Worker):
+    def run(self, data):
         print 'starting...'
-        envelope = json.loads(data[1])
+        res = {}
+        res['request'] = data
+        res['request']['return_key'] = data['returnKey']
+
+        envelope = data
+
         try:
             ins = Insights(envelope['payload'])
             fcast = Forecast(envelope['payload'])
-            envelope['payload'] = {}
-            envelope['payload']['insights'] = ins.process()
-            envelope['payload']['forecasts'] = fcast.process()
+            res['payload']['insights'] = ins.process()
+            res['payload']['forecasts'] = fcast.process()
         except:
             err = traceback.format_exc()
-            envelope['payload'] = {}
+            res['payload'] = {}
             # log.error(err)
-            envelope['payload'] = err
-            envelope['error'] = err
+            res['payload'] = err
+            res['error'] = err
 
-        self.q.put(envelope)
-
-    def pub(self):
-        s = self.q.get()
-        p.publish(s['returnKey'], json.dumps(s))
-        print 'published'
-        print s['returnKey']
-
-class iThread(threading.Thread):
-    def __init__(self, callback, data):
-        threading.Thread.__init__(self)
-        self.callback = callback
-        self.data = data
-
-    def run(self):
-        self.callback(self.data)
+        self.q.put(res)
